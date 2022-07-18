@@ -42,7 +42,7 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger('main')
 
 
-def call_api(method, path, host="LOCALHOST", port=10695, auth="admin:00000000-0000-0000-0000-000000000000", payload="", timeout=2):
+def call_api(method, path, host="192.168.1.102", port=10695, auth="admin:00000000-0000-0000-0000-000000000000", payload="", timeout=2):
     conn = http.client.HTTPConnection(host, port, timeout=timeout)
     headers = {
         'Content-Type': 'application/json',
@@ -105,3 +105,12 @@ if __name__ == "__main__":
         log.info("Cardholder not selected for random check")
         log.debug("Activating relay")
         call_api("POST", "/odata/API_Outputs/Activate", payload='{"apiKeys":["RND"],"period":"5"}')
+
+        import socket
+
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect(('localhost', 8000))
+        client_socket.send('Smart Check, Please seek assistance.'.encode())
+        client_socket.close()
+
+
