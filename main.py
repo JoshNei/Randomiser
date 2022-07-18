@@ -45,6 +45,7 @@ log = logging.getLogger('main')
 def call_api(method, path, host="LOCALHOST", port=10695, auth="admin:00000000-0000-0000-0000-000000000000", payload="", timeout=2):
     conn = http.client.HTTPConnection(host, port, timeout=timeout)
     headers = {
+        'Content-Type': 'application/json',
         'Authorization': "Basic " + base64.b64encode(auth.encode('ascii')).decode('ascii')
     }
     log.info(f"Connecting to API on {host}:{port}...")
@@ -59,6 +60,7 @@ def call_api(method, path, host="LOCALHOST", port=10695, auth="admin:00000000-00
         return False
     response = conn.getresponse()
     response_str = response.read().decode("utf-8")
+    # log_string = f"API Response: {response.reason} ({response.status})"
     log_string = f"API Response: {response.reason} ({response.status}) in {round((time.time() - start_time)*1000)}ms"
     if 200 <= response.status <= 299:
         log.info(log_string)
@@ -86,10 +88,6 @@ def test_select(sample, top):
 
 
 if __name__ == "__main__":
-
-    call_api("POST", "/odata/API_Outputs/Activate", payload='{"apiKeys":["RND"],"period":"5"}')
-    exit()
-
     log.info("Running randomiser check")
     if select(3):
         log.info("Cardholder selected for random check")
@@ -97,11 +95,13 @@ if __name__ == "__main__":
             log.info("Cardholder access allowed")
             log.debug("Activating relay")
             call_api("POST", "/odata/API_Outputs/Activate", payload='{"apiKeys":["RND"],"period":"5"}')
-            # log.debug("Logging to journal")
-            # call_api("POST", "/odata/API_Workstations/LogIntoEventsLog", payload='{"workstations":["DESKTOP-T65HV7U_GUI"],"logData":"This is a log From API","logType":"Information"}')
+            log.debug("Logging to journal")
+            call_api("POST", "/odata/API_Workstations/LogIntoEventsLog", payload='{"workstations":["DESKTOP-T65HV7U_GUI"],"logData":"This is a log From API","logType":"Information"}')
         else:
             log.info("Cardholder access denied")
-            # log.debug("Logging to journal")
-            # call_api("POST", "/odata/API_Workstations/LogIntoEventsLog", payload='{"workstations":["DESKTOP-T65HV7U_GUI"],"logData":"This is a log From API","logType":"Information"}')
+            log.debug("Logging to journal")
+            call_api("POST", "/odata/API_Workstations/LogIntoEventsLog", payload='{"workstations":["DESKTOP-T65HV7U_GUI"],"logData":"This is a log From API","logType":"Information"}')
     else:
         log.info("Cardholder not selected for random check")
+        log.debug("Activating relay")
+        call_api("POST", "/odata/API_Outputs/Activate", payload='{"apiKeys":["RND"],"period":"5"}')
