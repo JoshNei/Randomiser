@@ -1,6 +1,9 @@
 
 from kivy import Logger
 from kivy.app import App
+from kivy.clock import Clock
+from kivy.properties import partial
+from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.core.window import Window
@@ -37,49 +40,42 @@ class TwistedServerApp(App):
     label = None
 
     def build(self):
-        self.label = Label(text="")
+        layout = FloatLayout()
+        self.label = Label(text="", font_size='64dp', pos_hint={'right': 1, 'top': 0.8})
+        layout.add_widget(self.label)
+        self.image = Image(source='black.jpg', size_hint=(0.5, 0.5),
+                    pos_hint={'right': 0.75, 'top': 1})
+        layout.add_widget(self.image)
         reactor.listenTCP(8000, EchoServerFactory(self))
-        return self.label
+        return layout
+
+    def clear_screen(self, dt):
+        Logger.info("Clear Screen")
+        self.image.source = "black.jpg"
+        self.label.text = ""
+        return
 
     def handle_message(self, msg):
         msg = msg.decode('utf-8')
-        self.label.text = f"{msg}"
+        msg = msg.split(':', 2)
+        if(len(msg)>1):
+            Logger.info(msg[0])
+            if msg[0] == '0':
+                Logger.info("image 0")
+                self.image.source = 'guard.jpg'
+                self.label.color = (1, 0, 0, 1)  # Red
+                Clock.schedule_once(self.clear_screen, 10)
+            else:
+                Logger.info("image other")
+                self.image.source='guard2.jpg'
+                self.label.color = (0, 1, 0, 1) # Green
+                Clock.schedule_once(self.clear_screen, 10)
+
+            self.label.text = f"{msg[1]}"
+        else:
+            self.label.text = f"{msg[0]}"
+
         return
-
-
-if __name__ == '__main__':
-    TwistedServerApp().run()
-
-
-
-
-
-class MyApp(App):
-    denied_lbl= ''
-    def build(self):
-        # creating Floatlayout
-        layout = FloatLayout()
-
-        self.denied_lbl = Label(text='Denied',
-                    size_hint=(0.4, 0.2),
-                    pos_hint={'x': .3, 'y': .7},
-                           color=(0,0,1,1))
-
-
-        # adding button widget
-        layout.add_widget(self.denied_lbl)
-
-        '''layout = GridLayout(cols=2)
-        layout.add_widget(Button(text='Hello 1'))
-        layout.add_widget(Button(text='World 1'))
-        layout.add_widget(Button(text='Hello 2'))
-        layout.add_widget(Button(text='World 2'))'''
-
-        return layout
-
-    def update(self, *args):
-        print('hgfhgf')
-        self.denied_lbl.text = 'hello'
 
 if __name__ == '__main__':
     TwistedServerApp().run()
