@@ -56,12 +56,13 @@ class TwistedServerApp(App):
                            pos_hint={'right': 0.75, 'top': 1})
         layout.add_widget(self.image)'''
         reactor.listenTCP(8000, EchoServerFactory(self))
-        return SAGateLayout()
+        self.layout = SAGateLayout()
+        return self.layout
 
     def clear_screen(self, dt):
         Logger.info("Clear Screen")
-        self.root.ids.img1.source = "black.jpg"
-        self.root.ids.lbl1.text = ""
+        self.root.ids['img1'].source = "black.jpg"
+        self.root.ids['lbl1'].text = ""
         return
 
     def handle_message(self, msg):
@@ -71,18 +72,19 @@ class TwistedServerApp(App):
             Logger.info(msg[0])
             if msg[0] == '0':
                 Logger.info("image 0")
-                self.root.ids.img1.source = 'guard.jpg'
-                self.root.ids.lbl1.color = (1, 0, 0, 1)  # Red
+                self.layout.ids['img1'].source = 'guard.jpg'
+                self.layout.ids['lbl1'].color = (1, 0, 0, 1)  # Red
                 Clock.schedule_once(self.clear_screen, 10)
             else:
                 Logger.info("image other")
-                self.root.ids.img1.source = 'guard2.jpg'
-                self.root.ids.lbl1.color = (0, 1, 0, 1)  # Green
+                self.layout.ids['img1'].source = 'guard2.jpg'
+                self.layout.ids['lbl1'].color = (0, 1, 0, 1)  # Green
                 Clock.schedule_once(self.clear_screen, 10)
 
-            self.root.ids.lbl1.text = f"{msg[1]}"
+            self.layout.ids['lbl1'].text = f"{msg[1]}"
         else:
-            self.root.ids.lbl1.text = f"{msg[0]}"
+            print(self.layout.ids)
+            self.layout.ids['lbl1'].text = f"{msg[0]}"
 
         return
 
