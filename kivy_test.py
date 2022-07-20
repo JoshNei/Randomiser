@@ -67,7 +67,7 @@ class TwistedServerApp(App):
 
     def clear_screen(self):
         Logger.info("Clear Screen")
-        self.layout.ids['img1'].source = "Securitas_AB_logo.png"
+        self.layout.ids['img1'].source = "Securitas_AB_logo2.png"
         self.layout.ids['lbl1'].text = "Please present your \ncard to the reader"
         self.layout.ids['lbl1'].color = (0, 0, 0, 1)
         return
