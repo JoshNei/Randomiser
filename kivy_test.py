@@ -67,9 +67,9 @@ class TwistedServerApp(App):
 
     def clear_screen(self):
         Logger.info("Clear Screen")
-        self.label.color = (0, 0, 0, 1)
         self.layout.ids['img1'].source = "Securitas_AB_logo.png"
         self.layout.ids['lbl1'].text = "Please present your \ncard to the reader"
+        self.layout.ids['lbl1'].color = (0, 0, 0, 1)
         return
 
     def handle_message(self, msg):
@@ -82,7 +82,7 @@ class TwistedServerApp(App):
                 self.layout.ids['img1'].source = 'spot-check.png'
                 self.layout.ids['lbl1'].color = (1, 0, 0, 1)  # Red
                 #Clock.schedule_once(self.clear_screen, 10)
-                t = Timer(15.0, self.clear_screen)
+                t = Timer(5.0, self.clear_screen)
                 t.start()
             else:
                 Logger.info("image other")
