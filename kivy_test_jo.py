@@ -1,3 +1,5 @@
+from threading import Timer
+
 from kivy import Logger
 from kivy.app import App
 from kivy.clock import Clock
@@ -74,12 +76,15 @@ class TwistedServerApp(App):
                 Logger.info("image 0")
                 self.layout.ids['img1'].source = 'guard.jpg'
                 self.layout.ids['lbl1'].color = (1, 0, 0, 1)  # Red
-                Clock.schedule_once(self.clear_screen, 10)
+                #Clock.schedule_once(self.clear_screen, 10)
+                t = Timer(30.0, self.clear_screen)
+                t.start()
             else:
                 Logger.info("image other")
                 self.layout.ids['img1'].source = 'guard2.jpg'
                 self.layout.ids['lbl1'].color = (0, 1, 0, 1)  # Green
-                Clock.schedule_once(self.clear_screen, 10)
+                t = Timer(30.0, self.clear_screen)
+                t.start()
 
             self.layout.ids['lbl1'].text = f"{msg[1]}"
         else:
