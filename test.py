@@ -1,15 +1,15 @@
 import binascii
 import http.client
 
-host = "www.google.com"
-port = 443
+host = "localhost"
+port = 10695
 timeout = 5000
 method = "GET"
 path = "/"
 payload = None
 headers = {}
 
-conn = http.client.HTTPSConnection(host, port, timeout=timeout)
+conn = http.client.HTTPConnection(host, port, timeout=timeout)
 
 try:
     conn.request(method, path, payload, headers)

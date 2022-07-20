@@ -3,6 +3,8 @@ import http.client
 import MB
 import logging
 import secrets
+import socket
+import sys
 import time
 
 """
@@ -36,6 +38,18 @@ Process:
     Exit script.
                     
 """
+
+hold_chance = 3
+
+reader = [{
+    "ip": "192.168.1.70",
+    "port": 8000,
+    "relay": "RND",
+    "period": 3
+}][sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] else 0]
+
+
+screen_text = ("0|Random spot check. \nPlease see security.", "1|Please continue.")
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -72,45 +86,55 @@ def call_api(method, path, host="192.168.1.102", port=10695, auth="admin:0000000
         return None
 
 
-def select(top):
+def update_screen(screen_id, allow_pass):
+    log.debug(f"Updating screen {screen_id} ({reader['ip']}:{reader['port']})")
+    try:
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((reader['ip'], reader['port']))
+        log.debug(f"Sending screen text \"{screen_text[allow_pass]}\"")
+        client_socket.send(screen_text[allow_pass].encode())
+        client_socket.close()
+    except (TimeoutError, ConnectionRefusedError) as e:
+        log.error(f"Could not update screen {screen_id} - {e}")
+
+
+def random_check(top):
     rand_n = secrets.randbelow(top)
-    rand_b = not bool(rand_n)
-    log.debug(f"Random draw out of {top}: {rand_n}, {'Check' if rand_b else 'Allow'} cardholder")
-    return bool(rand_b)
+    rand_b = bool(rand_n)
+    log.debug(f"Random draw out of {top}: {rand_n}, {'Allow' if rand_b else 'Check'} cardholder")
+    return rand_b
 
 
 def test_select(sample, top):
-    true_val = 0
+    false_val = 0
     for i in range(sample):
-        if select(top):
-            true_val += 1
-    log.info(f"{true_val}/{sample} holds, {true_val / sample}% hold rate")
+        if not random_check(top):
+            false_val += 1
+    log.info(f"{false_val}/{sample} holds, {false_val / sample}% hold rate")
 
 
 if __name__ == "__main__":
     log.info("Running randomiser check")
-    if select(3):
+    if random_check(hold_chance):
+        log.info("Cardholder not selected for random check")
+        log.debug("Activating relay " + reader["relay"])
+        call_api("POST", "/odata/API_Outputs/Activate", payload=f'{{"apiKeys":["{reader["relay"]}"],"period":"{reader["period"]}"}}')
+        update_screen(0, True)
+    else:
         log.info("Cardholder selected for random check")
+        update_screen(0, False)
         if MB.popup("Cardholder selected for random check.\nAllow access?", style=MB.BTN_YESNO | MB.ICN_WARNING) == MB.YES:
             log.info("Cardholder access allowed")
-            log.debug("Activating relay")
-            call_api("POST", "/odata/API_Outputs/Activate", payload='{"apiKeys":["RND"],"period":"5"}')
-            log.debug("Logging to journal")
-            call_api("POST", "/odata/API_Workstations/LogIntoEventsLog", payload='{"workstations":["DESKTOP-T65HV7U_GUI"],"logData":"This is a log From API","logType":"Information"}')
+            log.debug("Activating relay " + reader["relay"])
+            call_api("POST", "/odata/API_Outputs/Activate", payload=f'{{"apiKeys":["{reader["relay"]}"],"period":"{reader["period"]}"}}')
+            update_screen(0, True)
+            # log.debug("Logging to journal")
+            # call_api("POST", "/odata/API_Workstations/LogIntoEventsLog", payload='{"workstations":["DESKTOP-JOSH_GUI"],"logData":"This is a log From API","logType":"Information"}')
         else:
             log.info("Cardholder access denied")
-            log.debug("Logging to journal")
-            call_api("POST", "/odata/API_Workstations/LogIntoEventsLog", payload='{"workstations":["DESKTOP-T65HV7U_GUI"],"logData":"This is a log From API","logType":"Information"}')
-    else:
-        log.info("Cardholder not selected for random check")
-        log.debug("Activating relay")
-        call_api("POST", "/odata/API_Outputs/Activate", payload='{"apiKeys":["RND"],"period":"5"}')
+            # log.debug("Logging to journal")
+            # call_api("POST", "/odata/API_Workstations/LogIntoEventsLog", payload='{"workstations":["DESKTOP-JOSH_GUI"],"logData":"This is a log From API","logType":"Information"}')
 
-        import socket
 
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect(('localhost', 8000))
-        client_socket.send('Smart Check, Please seek assistance.'.encode())
-        client_socket.close()
 
 
