@@ -61,7 +61,7 @@ class TwistedServerApp(App):
         self.layout = SAGateLayout()
         return self.layout
 
-    def clear_screen(self, dt):
+    def clear_screen(self):
         Logger.info("Clear Screen")
         self.root.ids['img1'].source = "black.jpg"
         self.root.ids['lbl1'].text = ""
@@ -77,13 +77,13 @@ class TwistedServerApp(App):
                 self.layout.ids['img1'].source = 'guard.jpg'
                 self.layout.ids['lbl1'].color = (1, 0, 0, 1)  # Red
                 #Clock.schedule_once(self.clear_screen, 10)
-                t = Timer(30.0, self.clear_screen)
+                t = Timer(15.0, self.clear_screen)
                 t.start()
             else:
                 Logger.info("image other")
                 self.layout.ids['img1'].source = 'guard2.jpg'
                 self.layout.ids['lbl1'].color = (0, 1, 0, 1)  # Green
-                t = Timer(30.0, self.clear_screen)
+                t = Timer(15.0, self.clear_screen)
                 t.start()
 
             self.layout.ids['lbl1'].text = f"{msg[1]}"
